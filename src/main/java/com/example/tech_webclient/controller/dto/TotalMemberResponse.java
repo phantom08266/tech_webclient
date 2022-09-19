@@ -10,10 +10,10 @@ public class TotalMemberResponse {
     public List<MemberDto> members;
     public int memberTotalCount;
 
-    public static Object of(List<Member> members, int size) {
-        return TotalMemberResponse.builder()
-                .members(members)
-                .memberTotalCount(size)
-                .build();
-    }
+//    public static Object of(List<Member> members, int size) {
+//        return TotalMemberResponse.builder()
+//                .members(members)
+//                .memberTotalCount(size)
+//                .build();
+//    }
 }
