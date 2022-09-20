@@ -29,22 +29,29 @@ public class MemberController {
 
     @GetMapping("/delay/{time}")
     public void delay(@PathVariable int time) {
-        customWebClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/delay/{time}").build(10000))
-                .retrieve()
-                .onStatus(HttpStatus::is4xxClientError,
-                        error -> Mono.error(new RuntimeException(">>>>>>>>>>>> API not found")))
-                .onStatus(HttpStatus::is5xxServerError,
-                        error -> Mono.error(new RuntimeException(">>>>>>>>>>>> Server is not responding")))
-                .bodyToMono(String.class)
-                .subscribe();
+        for (int i = 0; i < 3; i ++) {
+            customWebClient.get()
+                    .uri(uriBuilder -> uriBuilder.path("/delay/{time}").build(time))
+                    .retrieve() // exchange를 사용해도 되지만 Response에 대한 모든 처리를 해야해서 메모리 누수? 문제가 있다고 함. 따라서 body정보만 받을 수 있는 retrieve를 사용하도록 권장함.
+                    .onStatus(HttpStatus::is4xxClientError,
+                            error -> Mono.error(new RuntimeException(">>>>>>>>>>>> API not found")))
+                    .onStatus(HttpStatus::is5xxServerError,
+                            error -> Mono.error(new RuntimeException(">>>>>>>>>>>> Server is not responding")))
+                    .bodyToMono(String.class)
+                    .subscribe();
+            log.info("전송완료 [{}]", i + 1);
+        }
+
     }
 
     @GetMapping("/delay-blocking/{time}")
-    public void delay2(@PathVariable int time) {
+    public void delay2(@PathVariable String time) {
         Map<String, String> param = new HashMap<>();
-        param.put("time", "10000");
+        param.put("time", time);
+        for (int i = 0; i < 3; i ++) {
+            customRestTemplate.getForObject("http://localhost:9999/delay/{time}", String.class, param);
+            log.info("전송완료 [{}]", i + 1);
+        }
 
-        customRestTemplate.getForObject("http://localhost:9999/delay/{time}", String.class, param);
     }
 }
